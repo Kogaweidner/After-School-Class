@@ -19,9 +19,29 @@
   <div id="app">
     <header>
       <h1 v-text="sitename"></h1>
+      <div>
+        <input type="text" v-model="searchQuery" placeholder="Search products..." />
+        <button @click="searchProducts">Search</button>
+      </div>
     </header>
 
     <div class="main">
+      <aside class="left">
+        <h2>Sort By</h2>
+        <select v-model="sortKey">
+          <option value="subject">Subject</option>
+          <option value="location">Location</option>
+          <option value="price">Price</option>
+          <option value="availability">Availability</option>
+        </select>
+
+        <h3>Order</h3>
+        <select v-model="sortOrder">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </aside>
+
       <main>
         <div class="product-grid" v-if="showProduct">
           <div v-for="product in filteredProducts" :key="product.id" class="box">
@@ -131,6 +151,9 @@
           CA: 'California',
           NV: 'Nevada'
         },
+        sortKey: 'subject', // Default sort key
+        sortOrder: 'asc', // Default sort order
+        searchQuery: '' // Search query data property
       },
       methods: {
         addToCart(product) {
@@ -149,6 +172,10 @@
         submitForm() {
           alert('Order submitted!');
         },
+        searchProducts() {
+          // Placeholder for search functionality
+          alert('Searching for: ' + this.searchQuery);
+        },
         canAddToCart(product) {
           return product.availableInventory > this.cartCount(product.id);
         },
@@ -161,7 +188,29 @@
           return this.cart.length || 0;
         },
         filteredProducts() {
-          return this.products; // Return all products without sorting
+          if (!this.searchQuery) {
+            return this.sortedProducts; // Return all products if no search query
+          }
+          const firstLetter = this.searchQuery.charAt(0).toLowerCase();
+          return this.sortedProducts.filter(product => 
+            product.title.toLowerCase().startsWith(firstLetter) // Check if title starts with the first letter
+          );
+        },
+        sortedProducts() {
+          let productsArray = this.products.slice(0);
+          return productsArray.sort((a, b) => {
+            let modifier = this.sortOrder === 'asc' ? 1 : -1;
+
+            if (this.sortKey === 'subject') {
+              return a.title.localeCompare(b.title) * modifier; // Assuming title represents the subject
+            } else if (this.sortKey === 'location') {
+              return a.location.localeCompare(b.location) * modifier;
+            } else if (this.sortKey === 'price') {
+              return (a.price - b.price) * modifier;
+            } else if (this.sortKey === 'availability') {
+              return (a.availableInventory - b.availableInventory) * modifier;
+            }
+          });
         },
         cartItems() {
           // Ensure it maps to the correct objects with title and price
