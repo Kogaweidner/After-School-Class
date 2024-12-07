@@ -84,6 +84,20 @@
           <button v-on:click="submitForm">Place Order</button>
         </div>
       </main>
+
+      <aside class="right">
+        <h2>Cart</h2>
+        <ul>
+          <li v-for="item in cartItems" :key="item.id">
+            {{ item.title }} - ${{ item.price }} <button @click="removeFromCart(item.id)">Remove</button>
+          </li>
+        </ul>
+        <p><strong>Total Price: ${{ totalPrice }}</strong></p>
+        <button v-on:click="showCheckout">
+          {{ cartItemCount }}
+          <i class="fa-solid fa-cart-shopping"></i> Checkout
+        </button>
+      </aside>
     </div>
 
     <footer>
@@ -122,6 +136,13 @@
         addToCart(product) {
           this.cart.push(product.id);
         },
+        removeFromCart(productId) {
+          // Only remove one product of the productId from the cart
+          const index = this.cart.indexOf(productId);
+          if (index !== -1) {
+            this.cart.splice(index, 1); // Remove only one instance
+          }
+        },
         showCheckout() {
           this.showProduct = !this.showProduct;
         },
@@ -136,9 +157,22 @@
         }
       },
       computed: {
+        cartItemCount() {
+          return this.cart.length || 0;
+        },
         filteredProducts() {
           return this.products; // Return all products without sorting
         },
+        cartItems() {
+          // Ensure it maps to the correct objects with title and price
+          return this.cart.map(id => {
+            const product = this.products.find(p => p.id === id);
+            return { title: product.title, price: product.price, id: product.id };
+          });
+        },
+        totalPrice() {
+          return this.cartItems.reduce((total, item) => total + item.price, 0).toFixed(2);
+        }
       }
     });
   </script>
